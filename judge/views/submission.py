@@ -21,7 +21,7 @@ from django.views.generic import DetailView, ListView
 
 from judge import event_poster as event
 from judge.highlight_code import highlight_code
-from judge.models import Contest, Language, Problem, ProblemTranslation, Profile, Submission
+from judge.models import Contest, Language, Problem, ProblemTranslation, Profile, Submission, Organization
 from judge.utils.infinite_paginator import InfinitePaginationMixin
 from judge.utils.problems import get_result_data, user_completed_ids, user_editable_ids, user_tester_ids
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
@@ -273,6 +273,13 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
             return reverse('contest_all_submissions', kwargs={'contest': self.contest.key})
         return reverse('all_submissions')
 
+    def get_organization_submissions_page(self):
+        orgs = self.request.profile.organizations.all()
+        if orgs:
+            org = orgs[0]
+            return reverse('organization_submissions', kwargs={'pk': org.id, 'slug': org.slug})
+        return None
+
     def get_searchable_status_codes(self):
         hidden_codes = ['SC']
         if not self.request.user.is_superuser and not self.request.user.is_staff:
@@ -301,6 +308,7 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
         context['first_page_href'] = (self.first_page_href or '.') + suffix
         context['my_submissions_link'] = self.get_my_submissions_page()
         context['all_submissions_link'] = self.get_all_submissions_page()
+        context['organization_submissions_link'] = self.get_organization_submissions_page()
         context['tab'] = self.tab
         return context
 
@@ -340,6 +348,35 @@ class ConditionalUserTabMixin(object):
             context['tab'] = 'user_submissions_tab'
             context['tab_username'] = self.profile.user.username
         return context
+
+
+class OrganizationSubmission(SubmissionsListBase):
+    def get_title(self):
+        return _('All submissions of users in ') + self.organization.short_name
+
+    def get_content_title(self):
+        return format_html(_('All submissions of users in ') + ' <a href="{1}">{0}</a>', self.organization.short_name,
+                           reverse('organization_home', args=[self.org_id, self.org_slug]))
+
+    def get_queryset(self):
+        return super(OrganizationSubmission, self).get_queryset().filter(user__organizations=self.organization)
+
+    def get(self, request, *args, **kwargs):
+        if 'pk' not in kwargs or 'slug' not in kwargs:
+            raise ImproperlyConfigured('Must pass an organization id and slug')
+        self.organization = get_object_or_404(Organization, pk=kwargs['pk'])
+        self.org_id = kwargs['pk']
+        self.org_slug = kwargs['slug']
+        return super(OrganizationSubmission, self).get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(OrganizationSubmission, self).get_context_data(**kwargs)
+        context['tab'] = 'organization_submissions'
+        return context
+
+    def get_my_submissions_page(self):
+        if self.request.user.is_authenticated:
+            return reverse('all_user_submissions', kwargs={'user': self.request.user.username})
 
 
 class AllUserSubmissions(ConditionalUserTabMixin, UserMixin, SubmissionsListBase):
