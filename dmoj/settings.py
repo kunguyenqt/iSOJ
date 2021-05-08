@@ -47,6 +47,15 @@ DMOJ_PP_STEP = 0.98514
 DMOJ_PP_ENTRIES = 300
 DMOJ_PP_BONUS_FUNCTION = lambda n: 0.05 * n # 15 * (1 - 0.997 ** n)  # noqa: E731; 100 bai nua diem: 0.9930924
 
+VNOJ_ORG_PP_STEP = 0.95
+VNOJ_ORG_PP_ENTRIES = 100
+VNOJ_ORG_PP_SCALE = 1
+
+# Contribution points function
+# Both should be int
+VNOJ_CP_COMMENT = 1  # Each comment vote equals 1 CP
+VNOJ_CP_TICKET = 10  # Each good ticket equals CP
+
 NODEJS = '/usr/bin/node'
 EXIFTOOL = '/usr/bin/exiftool'
 ACE_URL = '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3'
@@ -64,6 +73,7 @@ DMOJ_PROBLEM_MIN_MEMORY_LIMIT = 0  # kilobytes
 DMOJ_PROBLEM_MAX_MEMORY_LIMIT = 1048576  # kilobytes
 DMOJ_PROBLEM_MIN_PROBLEM_POINTS = 0
 DMOJ_PROBLEM_HOT_PROBLEM_COUNT = 7
+DMOJ_PROBLEM_STATEMENT_DISALLOWED_CHARACTERS = {'“', '”', '‘', '’'}
 DMOJ_RATING_COLORS = True
 DMOJ_EMAIL_THROTTLING = (10, 60)
 DMOJ_STATS_LANGUAGE_THRESHOLD = 10
